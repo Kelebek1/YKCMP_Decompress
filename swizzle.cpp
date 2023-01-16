@@ -56,14 +56,16 @@ void Swizzle(u8* output, u8* input, u32 bytes_per_pixel, u32 width,
 extern "C" __declspec(dllexport)
 void UnswizzleImage(u8* src, u8* dst,
                     u32 width, u32 height, u32 depth, u32 mipmaps,
-                    u32 bytes_per_block, u32 tile_width_spacing, u32 block_height) {
+                    u32 fmt, u32 tile_width_spacing, u32 block_height) {
+    const auto format = static_cast<PixelFormat>(fmt);
+    const auto bytes_per_block = BytesPerBlock(format);
     const u32 bpp_log2 = BytesPerBlockLog2(bytes_per_block);
     const Extent3D size = {.width = width, .height = height, .depth = depth};
     const Extent3D block2 = {.width = 0, .height = block_height, .depth = 0};
 
-    const LevelInfo level_info = MakeLevelInfo(size, block2, bytes_per_block, tile_width_spacing);
+    const LevelInfo level_info = MakeLevelInfo(format, size, block2, bytes_per_block, tile_width_spacing);
     const s32 num_levels = mipmaps;
-    const Extent2D tile_size = {4, 4};
+    const Extent2D tile_size = DefaultBlockSize(format);
     const std::array level_sizes = CalculateLevelSizes(level_info, num_levels);
     const Extent2D gob = GobSize(bpp_log2, block_height, tile_width_spacing);
     const u32 layer_size = CalculateLevelBytes(level_sizes, num_levels);
@@ -93,13 +95,15 @@ void UnswizzleImage(u8* src, u8* dst,
 extern "C" __declspec(dllexport)
 void SwizzleImage(u8 * src, u8 * dst,
                     u32 width, u32 height, u32 depth, u32 mipmaps,
-                    u32 bytes_per_block, u32 tile_width_spacing, u32 block_height) {
+                    u32 fmt, u32 tile_width_spacing, u32 block_height) {
+    const auto format = static_cast<PixelFormat>(fmt);
+    const auto bytes_per_block = BytesPerBlock(format);
     const u32 bpp_log2 = BytesPerBlockLog2(bytes_per_block);
     const Extent3D size = {.width = width, .height = height, .depth = depth};
     const Extent3D block2 = {.width = 0, .height = block_height, .depth = 0};
 
-    const LevelInfo level_info = MakeLevelInfo(size, block2, bytes_per_block, tile_width_spacing);
-    const Extent2D tile_size = {4, 4};
+    const LevelInfo level_info = MakeLevelInfo(static_cast<PixelFormat>(format), size, block2, bytes_per_block, tile_width_spacing);
+    const Extent2D tile_size = DefaultBlockSize(format);
 
     const s32 level = 0;
     const Extent3D level_size = AdjustMipSize(size, level);

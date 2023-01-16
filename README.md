@@ -26,22 +26,12 @@ def decompress(fd):
     return new_fd
 
 def unswizzle(fd, hdr):
-    BITS_PER_BLOCK = {
-        0x1: 32, #A8B8G8R8_UNORM - guess
-        0x2: 64, #BC1_RGBA_UNORM
-        0x3: 128, #BC3_UNORM
-        0x6: 128, #BC7_UNORM
-    }
-    if hdr.type not in BITS_PER_BLOCK:
-        print(f"Unknown bits per block type {hdr.type:02X}!")
-        exit()
-
     new_fd = (c_uint8 * hdr.decompSize)()
     decompDLL.UnswizzleImage(byref(fd), byref(new_fd), 
                              hdr.width, hdr.height, 
                              1, # depth
                              hdr.mipmaps,
-                             BITS_PER_BLOCK[hdr.type] // 8,
+                             SURFACE_FORMATS[hdr.type], # an enum of formats defined in util.h
                              hdr.tile_spacing, hdr.block_height)
     return new_fd
 ```

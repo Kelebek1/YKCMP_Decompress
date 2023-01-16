@@ -1,12 +1,11 @@
-/*
+
 #include <fstream>
 #include <vector>
 #include "Util.h"
 
-
 void UnswizzleImage(u8* src, u8* dst,
-                    u32 width, u32 height, u32 depth, u32 mipmaps,
-                    u32 bytes_per_block, u32 tile_width_spacing, u32 block_height);
+    u32 width, u32 height, u32 depth, u32 mipmaps,
+    u32 bytes_per_block, u32 tile_width_spacing, u32 block_height);
 
 typedef struct {
     uint8_t magic[8];
@@ -35,15 +34,16 @@ typedef struct {
 } TEX_HDR;
 static_assert(sizeof(TEX_HDR) == 0x80);
 
+/*
 int main() {
-    std::ifstream f("white.bin", std::ios_base::in | std::ios_base::binary);
+    std::ifstream f("test.bin", std::ios_base::in | std::ios_base::binary);
 
     f.seekg(0, std::ios_base::end);
 
-    const u32 file_size = f.tellg();
+    const auto file_size = f.tellg();
 
-    std::vector<u8> fd(file_size);
-    std::vector<u8> new_fd(file_size);
+    std::vector<u8> fd(file_size, 0);
+    std::vector<u8> new_fd(file_size, 0);
 
     f.seekg(0, std::ios_base::beg);
 
@@ -52,16 +52,16 @@ int main() {
     f.close();
 
     TEX_HDR hdr{};
-    hdr.width = 32;
-    hdr.height = 32;
-    hdr.mipmaps = 6;
-    hdr.tile_spacing = 0;
-    hdr.block_height = 0;
+    hdr.width = 512;
+    hdr.height = 512;
+    hdr.mipmaps = 1;
+    hdr.tile_spacing = 4;
+    hdr.block_height = 3;
 
-    UnswizzleImage(fd.data(), new_fd.data(), 
-                   hdr.height, hdr.height, 1, // depth
-                   hdr.mipmaps, 
-                   8, hdr.tile_spacing, hdr.block_height);
+    UnswizzleImage(fd.data(), new_fd.data(),
+        hdr.height, hdr.height, 1, // depth
+        hdr.mipmaps,
+        static_cast<u32>(PixelFormat::BC1_RGBA_UNORM), hdr.tile_spacing, hdr.block_height);
 
     return 0;
 }
